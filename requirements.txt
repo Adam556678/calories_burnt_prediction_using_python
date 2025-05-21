@@ -1,0 +1,5 @@
+xgboost
+flask
+scipy
+joblib
+numpy
