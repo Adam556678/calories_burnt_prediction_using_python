@@ -1,24 +1,43 @@
 import numpy as np
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, render_template
 import pickle
-from scipy.special import boxcox1p
+from scipy.stats import boxcox
+import json
 
 app = Flask(__name__)
 
-model = pickle.load(open("xgb_model.pkl", "rb"))
+# load ANN model
+model = pickle.load(open("ann_model.pkl", "rb"))
+
+# load standard scaler
+scaler = pickle.load(open("scaler.pkl", "rb"))
+
+# load boxcox trained lambdas
+with open("lambda.json", "r") as f:
+    boxcox_lambda = json.load(f)
 
 @app.route("/", methods=['GET', 'POST'])
 def home():
     if request.method == 'POST':
+        # get form values
         age = float(request.form['Age'])
         weight = float(request.form['Weight'])
         heart_rate = float(request.form['Heart_Rate'])
         body_temp = float(request.form['Body_Temp'])
 
-        if body_temp < 0:
+        if body_temp <= 0:
             return "Body temperature must be positive for Box-Cox transformation."
         
-        
+        body_temp_transformed = boxcox(body_temp + 1, boxcox_lambda["Body_Temp"])    
+
+        # convert inputs to np array and scale them 
+        input_features = np.array([[age, weight, heart_rate, body_temp_transformed]])
+        input_scaled = scaler.transform(input_features)
+
+        # predict
+        prediction = model.predict(input_scaled)
+
+        return render_template("index.html", prediction=prediction) 
     
     return render_template("index.html")
 
