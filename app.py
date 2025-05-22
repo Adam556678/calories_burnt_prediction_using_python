@@ -36,6 +36,7 @@ def home():
 
         # predict
         prediction = model.predict(input_scaled)
+        prediction = float(prediction.flatten()[0])
 
         return render_template("index.html", prediction=prediction) 
     

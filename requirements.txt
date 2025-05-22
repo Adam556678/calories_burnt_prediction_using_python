@@ -3,3 +3,5 @@ flask
 scipy
 joblib
 numpy
+keras
+tensorflow
