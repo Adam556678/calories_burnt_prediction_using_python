@@ -2,6 +2,7 @@ import numpy as np
 from flask import Flask, request, render_template
 import pickle
 from scipy.stats import boxcox
+from scipy.special import inv_boxcox
 import json
 
 app = Flask(__name__)
@@ -36,9 +37,12 @@ def home():
 
         # predict
         prediction = model.predict(input_scaled)
-        prediction = float(prediction.flatten()[0])
+        
+        # inverse predicition
+        prediction_inv = inv_boxcox(prediction, boxcox_lambda['Calories'])
+        prediction_inv = float(prediction_inv.flatten()[0])
 
-        return render_template("index.html", prediction=prediction) 
+        return render_template("index.html", prediction=prediction_inv) 
     
     return render_template("index.html")
 
